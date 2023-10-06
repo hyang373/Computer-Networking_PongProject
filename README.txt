@@ -3,8 +3,8 @@ Contact Info
 
 Group Members & Email Addresses:
 
-    Person 1, person1@uky.edu
-    Person 2, person2@uky.edu
+    Helen Yang, helen.yang@uky.edu
+    Asmita Karki, asmita.karki@uky.edu
 
 Versioning
 ==========
