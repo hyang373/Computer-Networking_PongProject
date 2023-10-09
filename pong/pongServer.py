@@ -16,10 +16,3 @@ import threading
 # I suggest you use the sync variable in pongClient.py to determine how out of sync your two
 # clients are and take actions to resync the games
 
-server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-server_ip = " "  # Replace with your server's IP address
-server_port = 12345  # Choose a port
-server_socket.bind((server_ip, server_port))
-server_socket.listen(2)  # Accept up to 2 clients
-print("Server is waiting for connection")
-
