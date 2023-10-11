@@ -15,13 +15,26 @@ import threading
 # server is a socket object
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # this is creating the server
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # working on local host need
+
+
+# Create a function to handle each client
+def handle_client(clientSocket):
+    # Implement the game logic and communication here
+    pass
+
+#  IP = 128.163.35.46 
 server.bind(('', 12345)) # binds server to a specific IP address and port
 
 # start listening for connections 
-server.listen(5)
+server.listen(2)
 
+while True:
+    clientSocket, clientAddress = server.accept()
+    # Start a new thread to handle the client
+    client_thread = threading.Thread(target=handle_client, args=(clientSocket,))
+    client_thread.start()
 # accept incoming connections
-clientSocket, clientAddress = server.accept()
+
 
 clientSocket.close()
 server.close()
