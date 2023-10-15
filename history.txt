@@ -1,0 +1,27 @@
+10/15/2023
+- make sure connection message showing the correct error message
+- In - progress:
+  - working on assign clients to player one or two in pongServer.py
+  - get clients to join on same gam (multi-threading?)
+  - fix error vv
+
+Error:
+Traceback (most recent call last):
+  File "C:\Users\helen\OneDrive\Desktop\5. Fall 2023\CS371\code\CS371_Fall23_Project_V1.1\pong\pongServer.py", line 39, in <module>
+    server.bind(('10.113.33.101', 12345)) # binds server to a specific IP address and port
+OSError: [WinError 10049] The requested address is not valid in its context
+PS C:\Users\helen\OneDrive\Desktop\5. Fall 2023\CS371\code\CS371_Fall23_Project_V1.1\pong> python pongServer.py
+Exception in thread Thread-1 (handle_client):
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\threading.py", line 1016, in _bootstrap_inner
+    self.run()
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\threading.py", line 953, in run
+    self._target(*self._args, **self._kwargs)
+TypeError: handle_client() missing 1 required positional argument: 'player_num'
+Exception in thread Thread-2 (handle_client):
+Traceback (most recent call last):
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\threading.py", line 1016, in _bootstrap_inner
+    self.run()
+  File "C:\Program Files\WindowsApps\PythonSoftwareFoundation.Python.3.10_3.10.3056.0_x64__qbz5n2kfra8p0\lib\threading.py", line 953, in run
+    self._target(*self._args, **self._kwargs)
+TypeError: handle_client() missing 1 required positional argument: 'player_num'
