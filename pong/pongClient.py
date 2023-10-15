@@ -173,23 +173,39 @@ def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
     
     # Create a socket and connect to the server
     # You don't have to use SOCK_STREAM, use what you think is best
-    client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    # added 10/11/2023
-    client.connect(('', 12345)) # connecting to server
+    # client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
     # Get the required information from your server (screen width, height & player paddle, "left or "right)
 
+    #--------------------------------------------------------------------
 
+    try:
+        client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client.connect((ip, int(port)))  # Attempt to connect to the provided IP and port
+        # If the connection was successful, proceed with the game
+        errorLabel.config(text="Successfully connected to the server.")
+        errorLabel.update()
+        # app.withdraw()
+        #playGame(screenWidth, screenHeight, "left" if playerPaddle == "right" else "right", client)
+        # app.quit()
+    except ConnectionRefusedError:
+        # Handle the case where the connection is refused (IP and port don't match)
+        errorLabel.config(text="Connection failed. Check IP and Port.")
+        errorLabel.update()
+    except Exception as e:
+        # Handle any other exceptions that might occur during the connection process
+        errorLabel.config(text=f"Connection error: {str(e)}")
+        errorLabel.update()
+    # ---------------------------------------------------------------------------
     # If you have messages you'd like to show the user use the errorLabel widget like so
-    errorLabel.config(text=f"Some update text. You input: IP: {ip}, Port: {port}")
+    # errorLabel.config(text=f"Some update text. You input: IP: {ip}, Port: {port}")
     # You may or may not need to call this, depending on how many times you update the label
-    errorLabel.update()     
+    # errorLabel.update()     
 
     # Close this window and start the game with the info passed to you from the server
-    #app.withdraw()     # Hides the window (we'll kill it later)
+    # app.withdraw()     # Hides the window (we'll kill it later)
     #playGame(screenWidth, screenHeight, ("left"|"right"), client)  # User will be either left or right paddle
-    #app.quit()         # Kills the window
+    # app.quit()         # Kills the window
 
 
 # This displays the opening screen, you don't need to edit this (but may if you like)
@@ -228,4 +244,4 @@ if __name__ == "__main__":
     # Uncomment the line below if you want to play the game without a server to see how it should work
     # the startScreen() function should call playGame with the arguments given to it by the server this is
     # here for demo purposes only
-    playGame(640, 480,"left",socket.socket(socket.AF_INET, socket.SOCK_STREAM))
+    # playGame(640, 480,"left",socket.socket(socket.AF_INET, socket.SOCK_STREAM))
