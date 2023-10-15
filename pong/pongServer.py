@@ -23,10 +23,10 @@ def handle_client(clientSocket):
     pass
 
 #  IP = 128.163.35.46 
-server.bind(('', 12345)) # binds server to a specific IP address and port
+server.bind(('10.113.33.101', 12345)) # binds server to a specific IP address and port
 
 # start listening for connections 
-server.listen(2)
+server.listen(10)
 
 while True:
     clientSocket, clientAddress = server.accept()
