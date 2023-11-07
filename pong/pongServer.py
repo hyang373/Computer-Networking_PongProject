@@ -10,7 +10,7 @@ import threading
 from queue import Queue
 
 # server is a socket object
-server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # this is creating the server
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # this is creating the server 
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) # working on local host need
 # Bind the server to a specific IP address and port
 server.bind(('10.113.33.101', 12345))
