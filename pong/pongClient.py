@@ -11,7 +11,7 @@ import sys
 import socket
 from assets.code.helperCode import *
 import time
- 
+import json
 # This is the main game loop.  For the most part, you will not need to modify this.  The sections
 # where you should add to the code are marked.  Feel free to change any part of this project
 # to suit your needs.
@@ -57,6 +57,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
     lScore = 0
     rScore = 0
     sync = 0
+    game_over = False
  
     while True:
  
@@ -88,9 +89,22 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         # where the ball is and the current score.
         # Feel free to change when the score is updated to suit your needs/requirements
             # Send ball position and score updates to the server
-        data = f"ball {ball.rect.x} {ball.rect.y} score {lScore} {rScore}"
-        client.send(data.encode())
- 
+        # data = f"ball {ball.rect.x} {ball.rect.y} score {lScore} {rScore}"
+        # client.send(data.encode())
+        try:
+            clientGameData = {
+                "playerPaddle" : [playerPaddleObj.rect[0], playerPaddleObj.rect[1]],
+                "opponentPaddle" : [playerPaddleObj.rect[0], playerPaddleObj.rect[1]],
+                "ball": [ball.rect[0], ball.rect[1]],
+                "lScore": lScore,
+                "rScore": rScore,
+                "gameOver": game_over,
+                "sync": sync
+            }
+            client.send(json.dumps(clientGameData).encode())
+        except Exception as e:
+            print(f"Error in syncing with other player | {e}")
+        
         # =========================================================================================
         # Update the player paddle and opponent paddle's location on the screen
  
@@ -110,7 +124,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         # If the game is over, display the win message
  
         if lScore > 4 or rScore > 4:
- 
+            game_over = True
             winText = "Player 1 Wins! " if lScore > 4 else "Player 2 Wins! "
             textSurface = winFont.render(winText, False, WHITE, (0,0,0))
             textRect = textSurface.get_rect()
@@ -154,7 +168,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
  
             # ==== End Ball Logic =================================================================
         # Drawing the dotted line in the center
- 
+
         for i in centerLine:
  
             pygame.draw.rect(screen, WHITE, i)
@@ -162,16 +176,16 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
  
         # Drawing the player's new location
         for paddle in [playerPaddleObj, opponentPaddleObj]:
- 
             pygame.draw.rect(screen, WHITE, paddle)
  
         pygame.draw.rect(screen, WHITE, topWall)
         pygame.draw.rect(screen, WHITE, bottomWall)
         scoreRect = updateScore(lScore, rScore, screen, WHITE, scoreFont)
-        pygame.display.update([topWall, bottomWall, ball, leftPaddle, rightPaddle, scoreRect, winMessage])
+        pygame.display.update()
  
         clock.tick(60)
- 
+        if(game_over == True):
+            return
  
         # This number should be synchronized between you and your opponent.  If your number is larger
         # then you are ahead of them in time, if theirs is larger, they are ahead of you, and you need to
@@ -179,9 +193,19 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
  
         sync += 1
  
-        # =========================================================================================
-        # Send your server update here at the end of the game loop to sync your game with your
-        # opponent's game
+        # =====# Receive and handle game state updates from the server
+        
+        data_info = client.recv(1024).decode()
+        print(f"Received data: {data_info}")
+        clientGameData.update(json.loads(data_info))
+        opponentPaddleObj.rect.x = clientGameData["opponentPaddle"][0]
+        opponentPaddleObj.rect.y = clientGameData["opponentPaddle"][1]
+        ball.rect[0] = clientGameData["ball"][0]
+        ball.rect[1] = clientGameData["ball"][1]
+        lScore = clientGameData["lScore"]
+        rScore = clientGameData["rScore"]
+        sync = clientGameData["sync"]
+    
         # =========================================================================================
  
 def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
@@ -203,20 +227,19 @@ def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
         # If the connection was successful, proceed with the game
         errorLabel.config(text="Successfully connected to the server.\nWaiting for another player.")
         errorLabel.update()
-        app.withdraw()
- 
         time.sleep(5)
- 
+        app.withdraw()
+        
         # Wait for the message from the server
         data = client.recv(1024).decode()
         # Split the received string into parts
         info_parts = data.split()
-        if len(info_parts) >= 7 and info_parts[0] == "screen" and info_parts[3] == "player1" and info_parts[5] == "player2":
+        if len(info_parts) >= 4 and info_parts[0] == "screen":
+            app.withdraw()
             screenWidth = int(info_parts[1])
             screenHeight = int(info_parts[2])
-            playerPaddle = "left" if info_parts[3] == "player1" else "right"
- 
- 
+            playerPaddle = str(info_parts[3])
+        
             # Now you can use screenWidth, screenHeight, and playerPaddle in your game logic
             playGame(screenWidth, screenHeight, playerPaddle, client)
             app.quit()
@@ -261,7 +284,3 @@ def startScreen():
 if __name__ == "__main__":
  
     startScreen()
-    # Uncomment the line below if you want to play the game without a server to see how it should work
-    # the startScreen() function should call playGame with the arguments given to it by the server this is
-    # here for demo purposes only
-    # playGame(640, 480,"left",socket.socket(socket.AF_INET, socket.SOCK_STREAM))
