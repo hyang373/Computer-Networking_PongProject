@@ -95,7 +95,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
             clientGameData = {
                 "playerPaddle" : [playerPaddleObj.rect[0], playerPaddleObj.rect[1]],
                 "opponentPaddle" : [playerPaddleObj.rect[0], playerPaddleObj.rect[1]],
-                #"ball": [ball.rect[0], ball.rect[1]],
+                # "ball": [ball.rect[0], ball.rect[1]],
                 #"lScore": lScore,
                 #"rScore": rScore,
                 "gameOver": game_over,
@@ -204,6 +204,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         #ball.rect[1] = clientGameData["ball"][1]
         #lScore = clientGameData["lScore"]
         #rScore = clientGameData["rScore"]
+        game_over = clientGameData["gameOver"]
         sync = clientGameData["sync"]
     
         # =========================================================================================
@@ -228,19 +229,21 @@ def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
         errorLabel.config(text="Successfully connected to the server.\nWaiting for another player.")
         errorLabel.update()
         time.sleep(5)
-        #app.withdraw()
         
         # Wait for the message from the server
         data = client.recv(1024).decode()
         # Split the received string into parts
         info_parts = data.split()
-        if len(info_parts) >= 4 and info_parts[0] == "screen":    
+        if len(info_parts) >= 4 and info_parts[0] == "screen":
+            app.withdraw()
             screenWidth = int(info_parts[1])
             screenHeight = int(info_parts[2])
             playerPaddle = str(info_parts[3])
-            app.withdraw()
+        
             # Now you can use screenWidth, screenHeight, and playerPaddle in your game logic
+            app.withdraw()
             playGame(screenWidth, screenHeight, playerPaddle, client)
+            time.sleep(5)
             app.quit()
     except ConnectionRefusedError:
         # Handle the case where the connection is refused (IP and port don't match)
