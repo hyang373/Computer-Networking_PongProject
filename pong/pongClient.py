@@ -235,11 +235,12 @@ def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
         # Split the received string into parts
         info_parts = data.split()
         if len(info_parts) >= 4 and info_parts[0] == "screen":
-            app.withdraw()
             screenWidth = int(info_parts[1])
             screenHeight = int(info_parts[2])
             playerPaddle = str(info_parts[3])
-        
+            errorLabel.config(text=f"You're on the {playerPaddle} side")
+            errorLabel.update()
+            time.sleep(2)
             # Now you can use screenWidth, screenHeight, and playerPaddle in your game logic
             app.withdraw()
             playGame(screenWidth, screenHeight, playerPaddle, client)
@@ -284,5 +285,4 @@ def startScreen():
     app.mainloop()
  
 if __name__ == "__main__":
- 
     startScreen()
