@@ -95,13 +95,13 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
             clientGameData = {
                 "playerPaddle" : [playerPaddleObj.rect[0], playerPaddleObj.rect[1]],
                 "opponentPaddle" : [playerPaddleObj.rect[0], playerPaddleObj.rect[1]],
-                "ball": [ball.rect[0], ball.rect[1]],
-                "lScore": lScore,
-                "rScore": rScore,
+                #"ball": [ball.rect[0], ball.rect[1]],
+                #"lScore": lScore,
+                #"rScore": rScore,
                 "gameOver": game_over,
                 "sync": sync
             }
-            client.send(json.dumps(clientGameData).encode())
+            client.sendall(json.dumps(clientGameData).encode())
         except Exception as e:
             print(f"Error in syncing with other player | {e}")
         
@@ -200,10 +200,10 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         clientGameData.update(json.loads(data_info))
         opponentPaddleObj.rect.x = clientGameData["opponentPaddle"][0]
         opponentPaddleObj.rect.y = clientGameData["opponentPaddle"][1]
-        ball.rect[0] = clientGameData["ball"][0]
-        ball.rect[1] = clientGameData["ball"][1]
-        lScore = clientGameData["lScore"]
-        rScore = clientGameData["rScore"]
+        #ball.rect[0] = clientGameData["ball"][0]
+        #ball.rect[1] = clientGameData["ball"][1]
+        #lScore = clientGameData["lScore"]
+        #rScore = clientGameData["rScore"]
         sync = clientGameData["sync"]
     
         # =========================================================================================
@@ -228,18 +228,17 @@ def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
         errorLabel.config(text="Successfully connected to the server.\nWaiting for another player.")
         errorLabel.update()
         time.sleep(5)
-        app.withdraw()
+        #app.withdraw()
         
         # Wait for the message from the server
         data = client.recv(1024).decode()
         # Split the received string into parts
         info_parts = data.split()
-        if len(info_parts) >= 4 and info_parts[0] == "screen":
-            app.withdraw()
+        if len(info_parts) >= 4 and info_parts[0] == "screen":    
             screenWidth = int(info_parts[1])
             screenHeight = int(info_parts[2])
             playerPaddle = str(info_parts[3])
-        
+            app.withdraw()
             # Now you can use screenWidth, screenHeight, and playerPaddle in your game logic
             playGame(screenWidth, screenHeight, playerPaddle, client)
             app.quit()
