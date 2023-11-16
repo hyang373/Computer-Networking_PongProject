@@ -12,9 +12,11 @@ def client_thread(client_socket, target_socket):
         while True:
             try:
                 data = client_socket.recv(SIZE)
+                if not data:
+                    break
                 print(f"Received data: {data}")
                 client_data = json.loads(data.decode("utf-8"))
-                target_socket.send(json.dumps(client_data).encode("utf-8"))
+                target_socket.sendall(json.dumps(client_data).encode("utf-8"))
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON: {e}")
 
