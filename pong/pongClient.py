@@ -230,8 +230,15 @@ def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
     # port          A string holding the port the server is using
     # errorLabel    A tk label widget, modify it's text to display messages to the user (example below)
     # app           The tk window object, needed to kill the window
-    #--------------------------------------------------------------------
- 
+    # --------------------------------------------------------------------
+    # =================================================================================================
+    # Author:      Asmita Karki & Helen Yang
+    # Purpose:     This shows the clients which side they are on (left or right) and checks connection status.
+    # Pre:         The IP address and Port should be reachable.
+    # Post:        After the client joins, the error label updates to say they either successfully connected 
+    #              or there was an error. It starts the game after it gets the information.
+    # =================================================================================================
+    
     try:
         client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client.connect((ip, int(port)))  # Attempt to connect to the provided IP and port
