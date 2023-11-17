@@ -24,6 +24,7 @@ Run the following line to install the required libraries for this project:
 
 Known Bugs
 ==========
-- The server doesn't work because the logic isn't yet written.
-- The client doesn't speak to the server
+Before the game starts, the program will inform the players which paddle they are 
+assigned to in the ErrorLabel area of the joinServer window. Player 2 (the right side) 
+message does not display properly.
 
