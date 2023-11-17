@@ -31,6 +31,7 @@ def startServer():
     try:
         # local ip address & port
         localIP = "10.113.33.191"
+        # localIP = "10.47.132.220"
         localPort = 12345
    
         # connect server to ip and port number
