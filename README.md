@@ -9,7 +9,8 @@ Group Members & Email Addresses:
 Versioning
 ==========
 
-Github Link: 
+Github Link:
+https://github.com/hyang373/CS371-PongProject#pong-project 
 
 General Info
 ============
