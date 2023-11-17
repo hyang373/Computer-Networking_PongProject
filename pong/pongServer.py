@@ -17,33 +17,40 @@ clientSocket1: socket
 SIZE: int
 lock = threading.Lock() # create lock object
 
-def client_thread(client_socket:socket, target_socket:socket) -> None:
-    # =================================================================================================
-    # Author:      Asmita Karki & Helen Yang
-    # Purpose:     This handles communication with the client
-    # Pre:         client_socket and target_socket should be valid sockets.
-    #              it should be able to receive data from client_socket.
-    # Post:        It actively receives data from client_socket.
-    #              It decodes the JSON data and sends it to target_socket (other player).
-    # =================================================================================================
+def client_thread(client_socket: socket, target_socket: socket) -> None:
     try:
         while True:
             try:
-                # receive data from the client
+                # Set a timeout for the recv operation
                 data = client_socket.recv(SIZE)
                 if not data:
                     break
                 print(f"Received data: {data}")
-                with lock:
-                    # decode JSON data and send it to the other client
-                    client_data = json.loads(data.decode("utf-8"))
-                    target_socket.sendall(json.dumps(client_data).encode("utf-8"))
-                    # automatically released because im using "with lock"
-            except json.JSONDecodeError as e:
-                print(f"Error decoding JSON: {e}")
  
-    except Exception as e:
-        print(f"Client thread error: {e}")
+                with lock:
+                    # Decode JSON data and send it to the other client
+                    try:
+                        client_data = json.loads(data.decode("utf-8"))
+ 
+                        # Check if the decoded data is a non-empty dictionary
+                        if isinstance(client_data, dict) and client_data:
+                            target_socket.sendall(json.dumps(client_data).encode("utf-8"))
+                        else:
+                            print("Received data is not a valid JSON object.")
+ 
+                    except json.JSONDecodeError as decode_error:
+                        print(f"Error decoding JSON: {decode_error}")
+ 
+            except socket.timeout:
+                # Handle a timeout if needed
+                print("Socket timeout - no data received")
+            except ConnectionResetError:
+                print("Connection reset by client.")
+                break
+            except Exception as e:
+                print(f"Client thread error: {e}")
+                break
+ 
     finally:
         print("Closing client socket.")
         client_socket.close()
@@ -60,7 +67,7 @@ def startServer():
 
     try:
         # local ip address & port
-        localIP = "10.113.33.101" 
+        localIP = "10.113.33.191" 
         localPort = 12345
    
         # connect server to ip and port number
