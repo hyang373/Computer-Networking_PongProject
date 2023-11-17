@@ -1,9 +1,9 @@
 # =================================================================================================
-# Contributing Authors:     <Asmita Karki, Helen Yang>
-# Email Addresses:          <aka271@uky.edu, hya230@uky.edu>
-# Date:                     <09/27/2023 date last edited>
-# Purpose:                  <How this file contributes to the project>
-# Misc:                     <Not Required.  Anything else you might want to include>
+# Contributing Authors:     Asmita Karki, Helen Yang
+# Email Addresses:          aka271@uky.edu, hya230@uky.edu
+# Date:                     11/17/2023 date last edited
+# Purpose:                  This file implements the client side of the game. It sends the client's paddle's movement, 
+#                           ball's location, and score to the server.
 # =================================================================================================
 import pygame
 import tkinter as tk
@@ -12,10 +12,10 @@ import socket
 from assets.code.helperCode import *
 import time
 import json
-# This is the main game loop.  For the most part, you will not need to modify this.  The sections
-# where you should add to the code are marked.  Feel free to change any part of this project
-# to suit your needs.
- 
+import threading
+client_lock = threading.Lock()
+
+# This is the main game loop.
 def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.socket) -> None:
     # Pygame inits
     pygame.mixer.pre_init(44100, -16, 2, 2048)
@@ -57,7 +57,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
     lScore = 0
     rScore = 0
     sync = 0
-    game_over : bool = False
+    game_over = False
  
     while True:
  
@@ -85,15 +85,10 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
             elif event.type == pygame.KEYUP:
                 playerPaddleObj.moving = ""
         # =========================================================================================
-        # Your code here to send an update to the server on your paddle's information,
-        # where the ball is and the current score.
-        # Feel free to change when the score is updated to suit your needs/requirements
-            # Send ball position and score updates to the server
-        # data = f"ball {ball.rect.x} {ball.rect.y} score {lScore} {rScore}"
-        # client.send(data.encode())
+        # To send an update to the server on paddle's information, where the ball is and the current score.
         try:
-            clientGameData : dict = {
-                "playerPaddle" : [playerPaddleObj.rect.x, playerPaddleObj.rect.y],  
+            clientGameData = {
+                "playerPaddle" : [playerPaddleObj.rect.x, playerPaddleObj.rect.y],
                 "opponentPaddle" : [opponentPaddleObj.rect.x, opponentPaddleObj.rect.y],
                 "ball": [ball.rect.x, ball.rect.y],
                 "lScore": lScore,
@@ -101,13 +96,13 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
                 "gameOver": game_over,
                 "sync": sync
             }
-            client.sendall(json.dumps(clientGameData).encode())
+            with client_lock:
+                client.sendall(json.dumps(clientGameData).encode())
         except Exception as e:
             print(f"Error in syncing with other player | {e}")
-        
+       
         # =========================================================================================
         # Update the player paddle and opponent paddle's location on the screen
- 
         for paddle in [playerPaddleObj, opponentPaddleObj]:
  
             if paddle.moving == "down":
@@ -122,7 +117,6 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
                     paddle.rect.y -= paddle.speed
  
         # If the game is over, display the win message
- 
         if lScore > 4 or rScore > 4:
             game_over = True
             winText = "Player 1 Wins! " if lScore > 4 else "Player 2 Wins! "
@@ -131,19 +125,16 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
             textRect.center = ((screenWidth/2), screenHeight/2)
             winMessage = screen.blit(textSurface, textRect)
         else:
- 
             # ==== Ball Logic =====================================================================
             ball.updatePos()
  
             # If the ball makes it past the edge of the screen, update score, etc.
             if ball.rect.x > screenWidth:
- 
                 lScore += 1
                 pointSound.play()
                 ball.reset(nowGoing="left")
  
             elif ball.rect.x < 0:
- 
                 rScore += 1
                 pointSound.play()
                 ball.reset(nowGoing="right")
@@ -159,7 +150,6 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
  
             # If the ball hits a wall
             if ball.rect.colliderect(topWall) or ball.rect.colliderect(bottomWall):
- 
                 bounceSound.play()
                 ball.hitWall()
  
@@ -169,9 +159,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
             # ==== End Ball Logic =================================================================
         # Drawing the dotted line in the center
         for i in centerLine:
- 
             pygame.draw.rect(screen, WHITE, i)
- 
  
         # Drawing the player's new location
         for paddle in [playerPaddleObj, opponentPaddleObj]:
@@ -186,42 +174,45 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         if(game_over == True):
             return
  
-        # This number should be synchronized between you and your opponent.  If your number is larger
-        # then you are ahead of them in time, if theirs is larger, they are ahead of you, and you need to
-        # catch up (use their info)
+        # This number is synchronized between you and your opponent.  If your number is larger
+        # then you are ahead of them in time, if theirs is larger, they are ahead of you. 
+        # This catches up by using the other player's info.
  
         sync += 1
  
-        # =====# Receive and handle game state updates from the server
-        
-        data_info = client.recv(1024).decode()
-        print(f"Received data: {data_info}")
-        clientGameData.update(json.loads(data_info))
-        if((int(clientGameData["lScore"]) > lScore) | (int(clientGameData["rScore"]) > rScore)):
-            print("opposite's data\n")
-            playerPaddleObj.rect.x = clientGameData["opponentPaddle"][0]
-            playerPaddleObj.rect.y = clientGameData["opponentPaddle"][1]
-            opponentPaddleObj.rect.x = clientGameData["playerPaddle"][0]
-            opponentPaddleObj.rect.y = clientGameData["playerPaddle"][1]
-            ball.rect.x = clientGameData["ball"][0]
-            ball.rect.y = clientGameData["ball"][0]
-            lScore = clientGameData["lScore"]
-            rScore = clientGameData["rScore"]
-            game_over = clientGameData["gameOver"]
-            sync = clientGameData["sync"]
-        else:
-            print("my data\n")
-            playerPaddleObj.rect.x = playerPaddleObj.rect.x
-            playerPaddleObj.rect.y = playerPaddleObj.rect.y
-            opponentPaddleObj.rect.x = clientGameData["playerPaddle"][0]
-            opponentPaddleObj.rect.y = clientGameData["playerPaddle"][1]
-            ball.rect.x = ball.rect.x
-            ball.rect.y = ball.rect.y
-            lScore = lScore
-            rScore = rScore
-            game_over = game_over
-            sync = sync
-    
+        # Receive and handle game state updates from the server
+        try: 
+            with client_lock:
+                data_info = client.recv(1024).decode()
+                print(f"Received data: {data_info}")
+                clientGameData.update(json.loads(data_info))
+            #if the left score is greater or right score is greater then it updates the data
+            if((int(clientGameData["lScore"]) > lScore) | (int(clientGameData["rScore"]) > rScore)):
+                print("opposite's data\n")
+                playerPaddleObj.rect.x = clientGameData["opponentPaddle"][0]
+                playerPaddleObj.rect.y = clientGameData["opponentPaddle"][1]
+                opponentPaddleObj.rect.x = clientGameData["playerPaddle"][0]
+                opponentPaddleObj.rect.y = clientGameData["playerPaddle"][1]
+                ball.rect.x = clientGameData["ball"][0]
+                ball.rect.y = clientGameData["ball"][0]
+                lScore = clientGameData["lScore"]
+                rScore = clientGameData["rScore"]
+                game_over = clientGameData["gameOver"]
+                sync = clientGameData["sync"]
+            else:
+                print("")
+                playerPaddleObj.rect.x = playerPaddleObj.rect.x
+                playerPaddleObj.rect.y = playerPaddleObj.rect.y
+                opponentPaddleObj.rect.x = clientGameData["playerPaddle"][0]
+                opponentPaddleObj.rect.y = clientGameData["playerPaddle"][1]
+                ball.rect.x = ball.rect.x
+                ball.rect.y = ball.rect.y
+                lScore = lScore
+                rScore = rScore
+                game_over = game_over
+                sync = sync
+        except Exception as e:
+            print(f"Error receiving data from the server | {e}")
         # =========================================================================================
  
 def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
@@ -243,8 +234,7 @@ def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
         # If the connection was successful, proceed with the game
         errorLabel.config(text="Successfully connected to the server.\nWaiting for another player.")
         errorLabel.update()
-        # time.sleep(5)
-        
+       
         # Wait for the message from the server
         data = client.recv(1024).decode()
         # Split the received string into parts
@@ -253,12 +243,11 @@ def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
             screenWidth = int(info_parts[1])
             screenHeight = int(info_parts[2])
             playerPaddle = str(info_parts[3])
- 
             errorLabel.config(text=f"You're on the {playerPaddle} side")
             errorLabel.update()
             time.sleep(2)
-            # Now you can use screenWidth, screenHeight, and playerPaddle in your game logic
             app.withdraw()
+            # after it displays which side you're on, the game starts
             playGame(screenWidth, screenHeight, playerPaddle, client)
             time.sleep(5)
             app.quit()
@@ -301,5 +290,4 @@ def startScreen():
     app.mainloop()
  
 if __name__ == "__main__":
- 
     startScreen()
