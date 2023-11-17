@@ -1,9 +1,0 @@
-10/15/2023
-- make sure connection message showing the correct error message
-- In - progress:
-  - working on assign clients to player one or two in pongServer.py
-  - get clients to join on same game (multi-threading?)
-
-11/15/2023
-- got player onto same thread
-- To Do : send data between the clients and sync
