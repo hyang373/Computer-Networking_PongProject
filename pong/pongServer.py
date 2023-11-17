@@ -15,28 +15,30 @@ import threading
 clientSocket0: socket
 clientSocket1: socket
 SIZE: int
-lock = threading.Lock() # Locks for 
+lock = threading.Lock() # create lock object
 
 def client_thread(client_socket:socket, target_socket:socket) -> None:
     # =================================================================================================
-    # Author:      <Who wrote this method>
-    # Purpose:      <What should this method do>
-    # Pre:  <What preconditions does this method expect to be true? Ex. This method
-    #expects the program to be in X state before being called>
-    # Post:  <What postconditions are true after this method is called? Ex. This method
-    #  changed global variable X to Y>
+    # Author:      Asmita Karki & Helen Yang
+    # Purpose:     This handles communication with the client
+    # Pre:         client_socket and target_socket should be valid sockets.
+    #              it should be able to receive data from client_socket.
+    # Post:        It actively receives data from client_socket.
+    #              It decodes the JSON data and sends it to target_socket (other player).
     # =================================================================================================
     try:
         while True:
             try:
+                # receive data from the client
                 data = client_socket.recv(SIZE)
                 if not data:
                     break
                 print(f"Received data: {data}")
                 with lock:
+                    # decode JSON data and send it to the other client
                     client_data = json.loads(data.decode("utf-8"))
                     target_socket.sendall(json.dumps(client_data).encode("utf-8"))
-                    # automatically unlocks because im using "with lock"
+                    # automatically released because im using "with lock"
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON: {e}")
  
@@ -48,16 +50,17 @@ def client_thread(client_socket:socket, target_socket:socket) -> None:
  
 def startServer():
     # =================================================================================================
-    # Author:      <Who wrote this method>
-    # Purpose:      <What should this method do>
-    # Pre:  <What preconditions does this method expect to be true? Ex. This method
-    #expects the program to be in X state before being called>
-    # Post:  <What postconditions are true after this method is called? Ex. This method
-    #  changed global variable X to Y>
-   
+    # Author:      Asmita Karki & Helen Yang
+    # Purpose:     This function sets up the server
+    # Pre:         The localIP address and localPort should be available for use. 
+    # Post:        The server is able to facilitate communication between the clients.
+    #              The client sockets are accepted.
+    #              Threads start to handle communication.
+    # =================================================================================================
+
     try:
         # local ip address & port
-        localIP = "10.113.33.101"
+        localIP = "10.113.33.101" 
         localPort = 12345
    
         # connect server to ip and port number
@@ -79,7 +82,8 @@ def startServer():
         with lock:
             clientSocket0.send(data.encode("utf-8")[:1024])
             clientSocket1.send(data1.encode("utf-8")[:1024])
-   
+
+        # start thread for the 2 clients
         thread0 = threading.Thread(target=client_thread, args=(clientSocket0, clientSocket1))
         thread1 = threading.Thread(target=client_thread, args=(clientSocket1, clientSocket0))
    
