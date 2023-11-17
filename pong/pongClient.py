@@ -13,10 +13,16 @@ from assets.code.helperCode import *
 import time
 import json
 import threading
-client_lock = threading.Lock()
+client_lock = threading.Lock() # create lock object for thread safety
 
 # This is the main game loop.
 def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.socket) -> None:
+    # =================================================================================================
+    # Author:      Alexander Barrera, Asmita Karki & Helen Yang
+    # Purpose:     This function handles the game logic, player input, and communication with the server.
+    # Pre:         Dimensions need to be specified, playerPaddle must be either left or right, the client argument has to be a valid socket
+    # Post:        executes main game loop, updates game data, handlers player input, communicates with server
+    # =================================================================================================
     # Pygame inits
     pygame.mixer.pre_init(44100, -16, 2, 2048)
     pygame.init()
@@ -54,13 +60,12 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         opponentPaddleObj = leftPaddle
         playerPaddleObj = rightPaddle
    
-    lScore = 0
-    rScore = 0
-    sync = 0
-    game_over = False
+    lScore: int = 0
+    rScore: int = 0
+    sync: int = 0
+    game_over: bool = False
  
     while True:
- 
         # Wiping the screen
         screen.fill((0,0,0))
  
@@ -87,7 +92,8 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
         # =========================================================================================
         # To send an update to the server on paddle's information, where the ball is and the current score.
         try:
-            clientGameData = {
+            # create dictionary that contains this info for the client
+            clientGameData: dict = {
                 "playerPaddle" : [playerPaddleObj.rect.x, playerPaddleObj.rect.y],
                 "opponentPaddle" : [opponentPaddleObj.rect.x, opponentPaddleObj.rect.y],
                 "ball": [ball.rect.x, ball.rect.y],
@@ -96,7 +102,9 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
                 "gameOver": game_over,
                 "sync": sync
             }
+            # use lock for thread safety when sending data to server
             with client_lock:
+                # convert dictionary to JSON-encoded string when sending to the server
                 client.sendall(json.dumps(clientGameData).encode())
         except Exception as e:
             print(f"Error in syncing with other player | {e}")
@@ -187,7 +195,7 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
                 print(f"Received data: {data_info}")
                 clientGameData.update(json.loads(data_info))
             #if the left score is greater or right score is greater then it updates the data
-            if((int(clientGameData["lScore"]) > lScore) | (int(clientGameData["rScore"]) > rScore)):
+            if ((int(clientGameData["lScore"]) > lScore) or (int(clientGameData["rScore"]) > rScore)):
                 print("opposite's data\n")
                 playerPaddleObj.rect.x = clientGameData["opponentPaddle"][0]
                 playerPaddleObj.rect.y = clientGameData["opponentPaddle"][1]
@@ -222,10 +230,6 @@ def joinServer(ip:str, port:str, errorLabel:tk.Label, app:tk.Tk) -> None:
     # port          A string holding the port the server is using
     # errorLabel    A tk label widget, modify it's text to display messages to the user (example below)
     # app           The tk window object, needed to kill the window
-    # Create a socket and connect to the server
-    # You don't have to use SOCK_STREAM, use what you think is best
-    # client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # Get the required information from your server (screen width, height & player paddle, "left or "right)
     #--------------------------------------------------------------------
  
     try:
