@@ -78,14 +78,11 @@ def playGame(screenWidth:int, screenHeight:int, playerPaddle:str, client:socket.
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_DOWN:
                     playerPaddleObj.moving = "down"
-                    # im adding this to send paddle position update to server
-                    client.send(f"paddle {playerPaddle} down".encode())
  
                 elif event.key == pygame.K_UP:
  
                     playerPaddleObj.moving = "up"
-                    # im adding this to send paddle position update to server
-                    client.send(f"paddle {playerPaddle} up".encode())
+                   
            
             elif event.type == pygame.KEYUP:
                 playerPaddleObj.moving = ""
@@ -302,3 +299,4 @@ def startScreen():
  
 if __name__ == "__main__":
     startScreen()
+
