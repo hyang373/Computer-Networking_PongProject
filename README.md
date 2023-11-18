@@ -10,11 +10,13 @@ Versioning
 ==========
 
 Github Link:
-https://github.com/hyang373/CS371-PongProject#pong-project 
+https://github.com/hyang373/Computer-Networking_PongProject
 
 General Info
 ============
-This file describes how to install/run your program and anything else you think the user should know
+1. follow the install instructions.
+2. Open pongServer.py and update the LocalIP variable to your variable. Run the server.
+3. When running pongClient.py, connect to the server's IP address and port to join.
 
 Install Instructions
 ====================
@@ -22,10 +24,3 @@ Install Instructions
 Run the following line to install the required libraries for this project:
 
 `pip3 install -r requirements.txt`
-
-Known Bugs
-==========
-Before the game starts, the program will inform the players which paddle they are 
-assigned to in the ErrorLabel area of the joinServer window. Player 2 (the right side) 
-message does not display properly.
-
